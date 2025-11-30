@@ -1,0 +1,100 @@
+############################
+# WINDOWS DOMAIN CONTROLLER
+############################
+config.vm.define "dc01" do |dc01|
+  dc01.vm.box = "jborean93/windowsServer2022"
+  dc01.vm.hostname = "dc01"
+  dc01.vm.network "private_network", ip: "192.168.56.5"
+  dc01.vm.network "forwarded_port", guest: 3389, host: 3389
+
+  dc01.vm.provider "virtualbox" do |vb|
+    vb.name = "SOC-DC01"
+    vb.memory = 4096
+    vb.cpus = 2
+
+    # Enable VRDE (headless RDP)
+    vb.customize ["modifyvm", :id, "--vrde", "on"]
+    vb.customize ["modifyvm", :id, "--vrdeport", "5001"]
+  end
+
+  dc01.vm.provision "shell", path: "provision/dc.ps1"
+end
+
+############################
+# KALI LINUX
+############################
+config.vm.define "kali" do |kali|
+  kali.vm.box = "kalilinux/rolling"
+  kali.vm.hostname = "kali"
+  kali.vm.network "private_network", ip: "192.168.56.10"
+
+  kali.vm.provider "virtualbox" do |vb|
+    vb.name = "SOC-Kali"
+    vb.memory = 4096
+    vb.cpus = 2
+
+    # Enable VRDE
+    vb.customize ["modifyvm", :id, "--vrde", "on"]
+    vb.customize ["modifyvm", :id, "--vrdeport", "5002"]
+  end
+end
+
+############################
+# SPLUNK SERVER
+############################
+config.vm.define "splunk" do |splunk|
+  splunk.vm.box = "generic/ubuntu2404"
+  splunk.vm.hostname = "splunk"
+  splunk.vm.network "private_network", ip: "192.168.56.20"
+
+  splunk.vm.provider "virtualbox" do |vb|
+    vb.name = "SOC-Splunk"
+    vb.memory = 4096
+    vb.cpus = 2
+
+    # Enable VRDE
+    vb.customize ["modifyvm", :id, "--vrde", "on"]
+    vb.customize ["modifyvm", :id, "--vrdeport", "5003"]
+  end
+
+  splunk.vm.provision "shell", path: "provision/splunk.sh"
+end
+
+############################
+# PFsense Firewall
+############################
+config.vm.define "pfsense" do |pf|
+  pf.vm.box = "generic/freebsd13"
+  pf.vm.hostname = "pfsense"
+  pf.vm.network "private_network", ip: "192.168.56.30"
+
+  pf.vm.provider "virtualbox" do |vb|
+    vb.name = "SOC-pfSense"
+    vb.memory = 2048
+    vb.cpus = 1
+
+    # Enable VRDE
+    vb.customize ["modifyvm", :id, "--vrde", "on"]
+    vb.customize ["modifyvm", :id, "--vrdeport", "5004"]
+  end
+end
+
+############################
+# SURICATA IDS
+############################
+config.vm.define "suricata" do |ids|
+  ids.vm.box = "generic/ubuntu2404"
+  ids.vm.hostname = "suricata"
+  ids.vm.network "private_network", ip: "192.168.56.40"
+
+  ids.vm.provider "virtualbox" do |vb|
+    vb.name = "SOC-Suricata"
+    vb.memory = 2048
+    vb.cpus = 1
+
+    # Enable VRDE
+    vb.customize ["modifyvm", :id, "--vrde", "on"]
+    vb.customize ["modifyvm", :id, "--vrdeport", "5005"]
+  end
+end
+
